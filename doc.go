@@ -43,12 +43,12 @@
 // - v2 resolves as the latest v2.x.y tag (i.e. <v3)
 // - v2.1 resolves as the latest v2.1.y tag (i.e. <v2.2)
 //
-// This behavior may be disabled with [WithExactTag].
+// Partial version behavior may be disabled with [FetchWithExactTag] (resp. [CloneWithExactTag] when cloning).
 //
 // If no version information is provided, the default reference is the HEAD commit of the default branch
 // (e.g. master or main).
 //
-// This behavior may be disabled with [WithRequireVersion].
+// Default version behavior may be disabled with [FetchWithRequireVersion] (resp. [CloneWithRequiredVersion]).
 //
 // # Authentication
 //

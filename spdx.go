@@ -91,12 +91,12 @@ type SPDXLocator struct {
 // ParseSPDXLocator parses a VCS locator string and returns its components as a [SPDXLocator].
 func ParseSPDXLocator(location string, opts ...SPDXOption) (*SPDXLocator, error) {
 	if location == "" {
-		return nil, fmt.Errorf("empty locator is invalid: %w", Error)
+		return nil, fmt.Errorf("empty locator is invalid: %w", ErrVCS)
 	}
 
 	u, err := url.Parse(location)
 	if err != nil {
-		return nil, fmt.Errorf("a SPDX locator should be a valid URL: %w: %w", err, Error)
+		return nil, fmt.Errorf("a SPDX locator should be a valid URL: %w: %w", err, ErrVCS)
 	}
 
 	return SPDXLocatorFromURL(u, opts...)
@@ -104,18 +104,22 @@ func ParseSPDXLocator(location string, opts ...SPDXOption) (*SPDXLocator, error)
 
 // SPDXLocatorFromURL parses an URL into a [SPDXLocator].
 func SPDXLocatorFromURL(u *url.URL, opts ...SPDXOption) (*SPDXLocator, error) {
+	const (
+		schemeParts = 2
+		repoParts   = 2
+	)
 	o := optionsWithDefaults(opts)
 
 	if u.Path == "" {
-		return nil, fmt.Errorf("SPDX locator requires an URL path: %w", Error)
+		return nil, fmt.Errorf("SPDX locator requires an URL path: %w", ErrVCS)
 	}
 	if u.Fragment == "" {
-		return nil, fmt.Errorf("SPDX locator requires an URL fragment to specify a single file: %w", Error)
+		return nil, fmt.Errorf("SPDX locator requires an URL fragment to specify a single file: %w", ErrVCS)
 	}
 
 	// scheme analyis
 	var tool, transport string
-	parts := strings.SplitN(u.Scheme, "+", 2)
+	parts := strings.SplitN(u.Scheme, "+", schemeParts)
 	if len(parts) > 0 {
 		tool = parts[0]
 		transport = parts[1]
@@ -125,15 +129,15 @@ func SPDXLocatorFromURL(u *url.URL, opts ...SPDXOption) (*SPDXLocator, error) {
 	}
 
 	var repoPath, ref string
-	parts = strings.SplitN(u.Path, "@", 2)
+	parts = strings.SplitN(u.Path, "@", repoParts)
 	if len(parts) > 0 {
 		repoPath = parts[0]
 		ref = parts[1]
-		// 	} else {
+	} else {
 		repoPath = u.Path
 	}
 	if o.requireVersion && ref == "" {
-		return nil, fmt.Errorf("a non-empty version is required: %w", Error)
+		return nil, fmt.Errorf("a non-empty version is required: %w", ErrVCS)
 	}
 
 	var userinfo url.Userinfo

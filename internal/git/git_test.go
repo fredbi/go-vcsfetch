@@ -12,7 +12,7 @@ func TestRepository(t *testing.T) {
 	u, err := url.Parse("https://github.com/go-swagger/go-swagger")
 	require.NoError(t, err)
 
-	r := NewRepo(u, nil)
+	r := NewRepo(u, &Options{GitSkipAutoDetect: true})
 	require.NotNil(t, r)
 
 	var w bytes.Buffer

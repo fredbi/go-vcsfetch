@@ -3,11 +3,11 @@
 
 package vcsfetch
 
-type errVcsFetch string
+type vcsFetchError string
 
-func (e errVcsFetch) Error() string {
+func (e vcsFetchError) Error() string {
 	return string(e)
 }
 
-// Error is a sentinel error for all errors that originate from this package.
-const Error errVcsFetch = "vcsfetch error"
+// ErrVCS is a sentinel error for all errors that originate from this package.
+const ErrVCS vcsFetchError = "vcsfetch error"

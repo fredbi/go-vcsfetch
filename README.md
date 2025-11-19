@@ -1,15 +1,15 @@
 # go-vcsfetch
-![Lint](https://github.com/fredbi/go-vcsfetcher/actions/workflows/01-golang-lint.yaml/badge.svg)
-![CI](https://github.com/fredbi/go-vcsfetcher/actions/workflows/02-test.yaml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/fredbi/go-vcsfetcher/badge.svg?branch=master)](https://coveralls.io/github/fredbi/go-vcsfetcher?branch=master)
-![Vulnerability Check](https://github.com/fredbi/go-vcsfetcher/actions/workflows/03-govulncheck.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/fredbi/go-vcsfetcher)](https://goreportcard.com/report/github.com/fredbi/go-vcsfetcher)
+![Lint](https://github.com/fredbi/go-vcsfetch/actions/workflows/01-golang-lint.yaml/badge.svg)
+![CI](https://github.com/fredbi/go-vcsfetch/actions/workflows/02-test.yaml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/fredbi/go-vcsfetch/badge.svg?branch=master)](https://coveralls.io/github/fredbi/go-vcsfetch?branch=master)
+![Vulnerability Check](https://github.com/fredbi/go-vcsfetch/actions/workflows/03-govulncheck.yaml/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/fredbi/go-vcsfetch)](https://goreportcard.com/report/github.com/fredbi/go-vcsfetch)
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/fredbi/go-vcsfetcher)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://raw.githubusercontent.com/fredbi/go-vcsfetcher/master/LICENSE.md)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/fredbi/go-vcsfetch)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://raw.githubusercontent.com/fredbi/go-vcsfetch/master/LICENSE.md)
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/fredbi/go-vcsfetcher.svg)](https://pkg.go.dev/github.com/fredbi/go-vcsfetcher)
-![Go version](https://img.shields.io/github/go-mod/go-version/fredbi/go-vcsfetcher?color=violet)
+[![Go Reference](https://pkg.go.dev/badge/github.com/fredbi/go-vcsfetch.svg)](https://pkg.go.dev/github.com/fredbi/go-vcsfetch)
+![Go version](https://img.shields.io/github/go-mod/go-version/fredbi/go-vcsfetch?color=violet)
 ![Top language](https://img.shields.io/github/languages/top/fredbi/uri?color=green)
 
 A vcs fetcher and cloner for go.
@@ -20,9 +20,9 @@ Easily retrieve individual files or repositories over a vcs location.
 * [x] Support SPDX Locators (spdx downloadLocation attribute)
 * [x] Support common `git-url` schemes
 
-All fetched resources are exposed for read-only operations.
+All fetched resources are exposed for read-only operations only.
 
-If you're looking for general purpose vcs support for go,
+If you're looking for general purpose vcs support in go for read/write or other git-heavy operations,
 consider using `github.com/go-git/go-git` instead.
 
 ## Use-cases
@@ -30,6 +30,8 @@ consider using `github.com/go-git/go-git` instead.
 * retrieve a single file over a remote repo (e.g. config file)
 * retrieve an entire folder at a specific version
 * ...
+
+**Not intended to work with local resources** (e.g. `file://...`).
 
 ## Features
 
@@ -39,10 +41,10 @@ consider using `github.com/go-git/go-git` instead.
 * [x] Supported schemes: http, https, ssh, git TCP
 * [x] Authentication (basic, ssh)
 * [x] `Fetch` (single file) or `Clone` (folder or entire repo)
+* [x] `Fetch` optimized for common SCMs (github.com, gitlab), with https raw content download to bypass pure-git operations
 * [x] In memory or filesystem-backed
-* [x] `git-url` for well-known schemes by gihub, gitlab, gitea.
-* [x] Sparse-cloning
-* [x] Auto-detects the presence of the `git` binary for faster fetching using `git-archive`
+* [x] Supports sparse-cloning
+* [x] Auto-detects the presence of the `git` binary for faster fetching using the `git` command line
 
 **Resolving versions**
 
@@ -50,11 +52,15 @@ consider using `github.com/go-git/go-git` instead.
 * [x] Semver tag resolution with incomplete semver: e.g. resolve `v2` as the latest tag `<v3`,
       and `2.1` as the latest tag `<v2.2`
 
-### Future developments
+**SCM-specific URLs**
 
-* [ ] Support for mercurial, with a runtime dependency on `hg` 
-* [ ] native go git-archive support (or from go-git/v6?)
-* [ ] mock git server
+* [x] `git-url` parses resource locators for well-known schemes
+  * [ ] azure
+  * [ ] bitbucket
+  * [ ] gitea
+  * [x] gihub
+  * [x] gitlab
+* [x] know how to transform a resource locator into a raw-content URL
 
 ## Importing this library in your project
 
@@ -124,6 +130,13 @@ some operations using the native `git` implementation, which is usually faster t
 
 TODO
 
+### Future developments
+
+* [ ] Support for `git-archive` download, when well-known SCM will start support this protocol
+* [ ] Support for mercurial, with a runtime dependency on `hg` 
+* [ ] native go git-archive support (or from go-git/v6?)
+* [ ] mock git server
+
 ## License
 
 This library is distributed under the Apache 2.0 license.
@@ -136,12 +149,12 @@ This library is distributed under the Apache 2.0 license.
 Initially, my intent was to enable a shared golangci-lint config file
 on a repository common to all repos within an organization.
 
-Doing a little research on how to work with vcs resources in go, I stumbled over this little package
-[github.com/carabiner-dev/vcslocator](https://pkg.go.dev/github.com/carabiner-dev/vcslocator).
-
-I started to use it righ away, but quickly stumbled on a number of limitations.
-My requirements departed quite a bit from that implementation, to the point that forking wasn't an option.
-And so started this implementation.
+> Doing a little research on how to work with vcs resources in go, I stumbled over this little package
+> [github.com/carabiner-dev/vcslocator](https://pkg.go.dev/github.com/carabiner-dev/vcslocator).
+>
+> I started to use it righ away, but quickly stumbled on a number of limitations.
+> My requirements departed quite a bit from that implementation, to the point that forking wasn't an option.
+> And so started this implementation.
 
 Thank you to the guys at [`carabiner-dev`](https://carabiner.dev/), who provided me the inspiration
 to use a SPDX locator on top of `go-git`.

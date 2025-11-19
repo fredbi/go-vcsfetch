@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/fredbi/go-vcsfetch/internal/download"
 	"github.com/fredbi/go-vcsfetch/internal/git"
 )
 
@@ -64,6 +65,8 @@ func FetchWithGitDebug(enabled bool) FetchOption {
 // By default tags are resolved to match the latest semver tag, when a version
 // tag is not fully specified, e.g. "v2" would look for the latest "v2.x.y" tag,
 // and "v2.1" for the latest "v2.1.y" tag. "v2.3.4" would always resolve to "v2.3.4".
+//
+// When specifying an exact tag, there is no semver implied or filtering of prereleases.
 func FetchWithExactTag(exact bool) FetchOption {
 	return func(o *fetchOptions) {
 		withGitResolveExactTag(exact)(&o.gitOptions)
@@ -85,10 +88,18 @@ func FetchWithSPDXOptions(opts ...SPDXOption) FetchOption {
 	}
 }
 
-// FetchWithSPDXOptions appends giturl-specific options to apply to any git-url locator to be fetched.
+// FetchWithGitLocatorOptions appends giturl-specific options to apply to any git-url locator to be fetched.
 func FetchWithGitLocatorOptions(opts ...GitLocatorOption) FetchOption {
 	return func(o *fetchOptions) {
 		withGitLocatorOptions(opts...)(&o.locOptions)
+	}
+}
+
+// FetchWithSkipRawURL disables the attempt to short-circuit git if a SCM raw-content URL is available
+// for the remote resource.
+func FetchWithSkipRawURL(skipped bool) FetchOption {
+	return func(o *fetchOptions) {
+		withSkipRawURL(skipped)(&o.locOptions)
 	}
 }
 
@@ -96,7 +107,7 @@ func FetchWithGitLocatorOptions(opts ...GitLocatorOption) FetchOption {
 //
 // By default pre-releases are ignored.
 //
-// This option is disabled when using [FetchWithExacTag].
+// This option is disabled when using [FetchWithExactTag].
 //
 // Example:
 // for tag "v2", with pre-releases allowed, "v1.3.0-rc1" is a valid candidate.
@@ -159,6 +170,8 @@ func CloneWithGitDebug(enabled bool) CloneOption {
 // By default tags are resolved to match the latest semver tag, when a version
 // tag is not fully specified, e.g. "v2" would look for the latest "v2.x.y" tag,
 // and "v2.1" for the latest "v2.1.y" tag. "v2.3.4" would always resolve to "v2.3.4".
+//
+// When specifying an exact tag, there is no semver implied or filtering of prereleases.
 func CloneWithExactTag(exact bool) CloneOption {
 	return func(o *cloneOptions) {
 		withGitResolveExactTag(exact)(&o.gitOptions)
@@ -187,7 +200,7 @@ func CloneWithGitLocatorOptions(opts ...GitLocatorOption) CloneOption {
 	}
 }
 
-// ClonehWithAllowPrereleases includes pre-releases in semver tag resolution.
+// CloneWithAllowPrereleases includes pre-releases in semver tag resolution.
 //
 // By default pre-releases are ignored.
 //
@@ -223,7 +236,7 @@ type SPDXOption func(*spdxOptions)
 // GitLocatorOption is an option to parse a git locator (aka git-url).
 type GitLocatorOption func(*gitLocatorOptions)
 
-// WithRootURL declares an URL (as a [url.URL] or as a string) to prepend
+// SPDXWithRootURL declares an URL (as a [url.URL] or as a string) to prepend
 // to "slug-like" abbreviated locators.
 //
 // Example to resolve github repo slugs: rootURL = https://github.com
@@ -237,7 +250,7 @@ func SPDXWithRootURL[T string | *url.URL | url.URL](root T) SPDXOption {
 	}
 }
 
-// WithRootURL declares an URL (as a [url.URL] or as a string) to prepend
+// GitWithRootURL declares an URL (as a [url.URL] or as a string) to prepend
 // to "slug-like" abbreviated locators.
 //
 // Example to resolve github repo slugs: rootURL = https://github.com
@@ -251,7 +264,7 @@ func GitWithRootURL[T string | *url.URL | url.URL](root T) GitLocatorOption {
 	}
 }
 
-// SPDXWithRequireVersion tells the [SPDXLocator] parser to check that the location
+// SPDXWithRequiredVersion tells the [SPDXLocator] parser to check that the location
 // comes with an explicit version.
 func SPDXWithRequiredVersion(required bool) SPDXOption {
 	return func(o *spdxOptions) {
@@ -259,7 +272,7 @@ func SPDXWithRequiredVersion(required bool) SPDXOption {
 	}
 }
 
-// GitWithRequireVersion tells the [GitLocator] parser to check that the location
+// GitWithRequiredVersion tells the [GitLocator] parser to check that the location
 // comes with an explicit version.
 func GitWithRequiredVersion(required bool) GitLocatorOption {
 	return func(o *gitLocatorOptions) {
@@ -270,6 +283,7 @@ func GitWithRequiredVersion(required bool) GitLocatorOption {
 type cloneOptions struct {
 	gitOptions
 	locOptions
+
 	sparseFilter []string
 }
 
@@ -290,6 +304,7 @@ type locOption func(*locOptions)
 
 type locOptions struct {
 	requireVersion bool
+	skipRawURL     bool
 	spdxOpts       []SPDXOption
 	gitLocOpts     []GitLocatorOption
 }
@@ -320,7 +335,7 @@ func withGitBackingDir(enabled bool, dir string) gitOption {
 		if dir == "" {
 			tempDir, err := os.MkdirTemp("", "vcsclone")
 			if err != nil {
-				panic(fmt.Errorf("could not created temporary folder to clone: %w: %w", err, Error))
+				panic(fmt.Errorf("could not created temporary folder to clone: %w: %w", err, ErrVCS))
 			}
 			o.dir = tempDir
 		} else {
@@ -377,31 +392,20 @@ func withRequiredLocVersion(required bool) locOption {
 	}
 }
 
-func (o gitOptions) toInternalGitOptions() *git.Options {
-	return &git.Options{
-		IsFSBacked:        o.isFSBacked,
-		Dir:               o.dir,
-		GitSkipAutoDetect: o.gitSkipAutodetect,
-		Debug:             o.debug,
-		ResolveExactTag:   o.resolveExactTag,
-	}
-}
-
-func (o cloneOptions) toInternalGitCloneOptions() *git.CloneOptions {
-	return &git.CloneOptions{
-		SparseFilter: o.sparseFilter,
+func withSkipRawURL(skipped bool) locOption {
+	return func(o *locOptions) {
+		o.skipRawURL = skipped
 	}
 }
 
 func withRootURL[T string | *url.URL | url.URL](root T) commonLocOption {
 	return func(o *commonLocOptions) {
-		var v any
-		v = root
+		var v any = root
 		switch value := v.(type) {
 		case string:
 			u, err := url.Parse(value)
 			if err != nil {
-				panic(fmt.Errorf("invalid URL string passed as parameter: %q: %w: %w", value, err, Error))
+				panic(fmt.Errorf("invalid URL string passed as parameter: %q: %w: %w", value, err, ErrVCS))
 			}
 			o.rootURL = u
 		case *url.URL:
@@ -415,5 +419,25 @@ func withRootURL[T string | *url.URL | url.URL](root T) commonLocOption {
 func withRequiredVersion(required bool) commonLocOption {
 	return func(o *commonLocOptions) {
 		o.requireVersion = required
+	}
+}
+
+func (o locOptions) toInternalDownloadOptions() *download.Options {
+	return &download.Options{}
+}
+
+func (o gitOptions) toInternalGitOptions() *git.Options {
+	return &git.Options{
+		IsFSBacked:        o.isFSBacked,
+		Dir:               o.dir,
+		GitSkipAutoDetect: o.gitSkipAutodetect,
+		Debug:             o.debug,
+		ResolveExactTag:   o.resolveExactTag,
+	}
+}
+
+func (o cloneOptions) toInternalGitCloneOptions() *git.CloneOptions {
+	return &git.CloneOptions{
+		SparseFilter: o.sparseFilter,
 	}
 }

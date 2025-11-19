@@ -53,13 +53,13 @@ func NewCloner(opts ...CloneOption) *Cloner {
 //
 // The repoURL string must be a valid URL.
 //
-// If the URL is detected to be a valid SPDX locator, this is equivalent to [Cloner.CloneSPDX].
+// The URL is detected to be either a valid SPDX locator or a well-known giturl.
 //
 // The clone is accessible as a read-only [fs.FS] using [Cloner.FS].
 func (f *Cloner) Clone(ctx context.Context, repoURL string) error {
 	u, err := url.Parse(repoURL)
 	if err != nil {
-		return fmt.Errorf("expected a valid URL: %w: %w", err, Error)
+		return fmt.Errorf("expected a valid URL: %w: %w", err, ErrVCS)
 	}
 
 	return f.CloneURL(ctx, u)
@@ -69,7 +69,7 @@ func (f *Cloner) Clone(ctx context.Context, repoURL string) error {
 //
 // The clone is accessible as a read-only [fs.FS] using [Cloner.FS].
 func (f *Cloner) CloneLocator(ctx context.Context, locator Locator, opts ...CloneOption) error {
-	repo := git.NewRepo(locator.RepoURL(), f.cloneOptions.toInternalGitOptions())
+	repo := git.NewRepo(locator.RepoURL(), f.toInternalGitOptions())
 
 	fs, err := repo.Clone(ctx, locator.Version(), f.toInternalGitCloneOptions())
 	if err != nil {
@@ -93,7 +93,7 @@ func (f *Cloner) CloneURL(ctx context.Context, u *url.URL) error {
 	} else {
 		gitLocator, err := GitLocatorFromURL(u, f.gitLocOpts...)
 		if err != nil {
-			return fmt.Errorf("the provided URL is not a SPDX locator or a recognized git URL: %w: %w", err, Error)
+			return fmt.Errorf("the provided URL is not a SPDX locator or a recognized git URL: %w: %w", err, ErrVCS)
 		}
 		locator = gitLocator
 	}
@@ -109,7 +109,7 @@ func (f *Cloner) FS() fs.FS {
 func (f *Cloner) FetchFromClone(ctx context.Context, w io.Writer, location string) error {
 	u, err := url.Parse(location)
 	if err != nil {
-		return fmt.Errorf("expected a valid URL: %w: %w", err, Error)
+		return fmt.Errorf("expected a valid URL: %w: %w", err, ErrVCS)
 	}
 
 	return f.FetchURLFromClone(ctx, w, u)
@@ -118,16 +118,16 @@ func (f *Cloner) FetchFromClone(ctx context.Context, w io.Writer, location strin
 // FetchLocatorFromClone fetches a single file from the cloned repository, using a [Locator].
 func (f *Cloner) FetchLocatorFromClone(ctx context.Context, w io.Writer, locator Locator) error {
 	if f.clonedURL == nil || f.clonedFS == nil {
-		return fmt.Errorf("cannot fetch from clone: no clone available yet: %w", Error)
+		return fmt.Errorf("cannot fetch from clone: no clone available yet: %w", ErrVCS)
 	}
 
 	if locator.RepoURL().String() != f.clonedURL.String() {
-		return fmt.Errorf("cannot fetch from clone not matching the cloned repo URL: %w", Error)
+		return fmt.Errorf("cannot fetch from clone not matching the cloned repo URL: %w", ErrVCS)
 	}
 
 	file, err := f.clonedFS.Open(locator.Path())
 	if err != nil {
-		return fmt.Errorf("cannot fetch from clone: %w: %w", err, Error)
+		return fmt.Errorf("cannot fetch from clone: %w: %w", err, ErrVCS)
 	}
 
 	_, err = io.Copy(w, file)
@@ -144,7 +144,7 @@ func (f *Cloner) FetchURLFromClone(ctx context.Context, w io.Writer, u *url.URL)
 	} else {
 		gitLocator, err := GitLocatorFromURL(u, f.gitLocOpts...)
 		if err != nil {
-			return fmt.Errorf("the provided URL is not a SPDX locator or a recognized git URL: %w: %w", err, Error)
+			return fmt.Errorf("the provided URL is not a SPDX locator or a recognized git URL: %w: %w", err, ErrVCS)
 		}
 		locator = gitLocator
 	}
