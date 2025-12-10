@@ -100,7 +100,8 @@ func Parse(giteaURL *url.URL) (*URL, error) {
 	parts = parts[1:]
 
 	// Next part should be "branch", "tag", "commit"
-	if len(parts) < 2 {
+	const minExpectedParts = 2
+	if len(parts) < minExpectedParts {
 		return nil, fmt.Errorf(`expected URL path to contain ref type (branch/tag/commit) and ref name but got %q: %w`, pth, ErrGitea)
 	}
 

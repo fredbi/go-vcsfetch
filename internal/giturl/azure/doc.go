@@ -133,60 +133,60 @@
 // Azure DevOps raw URLs are more complex because:
 //
 // 1. API-based instead of path-based
-//    - Other providers: https://host/owner/repo/raw/branch/file
-//    - Azure: https://host/{org}/{project}/_apis/git/repositories/{repo}/items?...
+//   - Other providers: https://host/owner/repo/raw/branch/file
+//   - Azure: https://host/{org}/{project}/_apis/git/repositories/{repo}/items?...
 //
 // 2. Query parameter requirements
-//    - Multiple query parameters needed (path, version, api-version, download)
-//    - Parameters must be properly URL-encoded
-//    - Version descriptor needs type specification (branch/tag/commit)
+//   - Multiple query parameters needed (path, version, api-version, download)
+//   - Parameters must be properly URL-encoded
+//   - Version descriptor needs type specification (branch/tag/commit)
 //
 // 3. Three-part hierarchy
-//    - Organization, project, and repository are all separate entities
-//    - Project name may differ from repository name
-//    - Must preserve all three parts in the raw URL
+//   - Organization, project, and repository are all separate entities
+//   - Project name may differ from repository name
+//   - Must preserve all three parts in the raw URL
 //
 // 4. Version prefix handling
-//    - Browser URLs use GB/GT prefixes (GBmain, GTv1.0.0)
-//    - API expects plain version names (main, v1.0.0)
-//    - Conversion required between browser format and API format
+//   - Browser URLs use GB/GT prefixes (GBmain, GTv1.0.0)
+//   - API expects plain version names (main, v1.0.0)
+//   - Conversion required between browser format and API format
 //
 // 5. Authentication
-//    - Azure DevOps may require authentication for private repositories
-//    - API calls might need PAT (Personal Access Token) in headers
-//    - Unlike GitHub raw.githubusercontent.com which works without auth for public repos
+//   - Azure DevOps may require authentication for private repositories
+//   - API calls might need PAT (Personal Access Token) in headers
+//   - Unlike GitHub raw.githubusercontent.com which works without auth for public repos
 //
 // ## Recommended Implementation Strategy
 //
 // When implementing the Azure provider:
 //
 // 1. Parse Function
-//    - Extract owner, project, repo from path (split on /_git/)
-//    - Parse query parameters for path and version
-//    - Strip GB/GT prefixes from version parameter
-//    - Determine version type (branch vs tag vs commit)
+//   - Extract owner, project, repo from path (split on /_git/)
+//   - Parse query parameters for path and version
+//   - Strip GB/GT prefixes from version parameter
+//   - Determine version type (branch vs tag vs commit)
 //
 // 2. Raw Function
-//    - Build API URL with /_apis/git/repositories/{repo}/items
-//    - Add required query parameters:
-//      * path (from locator)
-//      * versionDescriptor.version (from locator, without GB/GT)
-//      * versionDescriptor.versionType (branch/tag/commit)
-//      * api-version=7.0
-//      * download=true
-//    - Properly URL-encode all parameters
+//   - Build API URL with /_apis/git/repositories/{repo}/items
+//   - Add required query parameters:
+//   - path (from locator)
+//   - versionDescriptor.version (from locator, without GB/GT)
+//   - versionDescriptor.versionType (branch/tag/commit)
+//   - api-version=7.0
+//   - download=true
+//   - Properly URL-encode all parameters
 //
 // 3. Version Type Detection
-//    - If version starts with "GB": branch
-//    - If version starts with "GT": tag
-//    - If version is SHA-like (40 hex chars): commit
-//    - If version is empty: default to main branch
+//   - If version starts with "GB": branch
+//   - If version starts with "GT": tag
+//   - If version is SHA-like (40 hex chars): commit
+//   - If version is empty: default to main branch
 //
 // 4. Edge Cases
-//    - Empty path: should error (can't fetch repository root as file)
-//    - Empty version: default to "main" branch
-//    - SSH URLs: convert to HTTPS for API access
-//    - Custom Azure instances: may have different API paths
+//   - Empty path: should error (can't fetch repository root as file)
+//   - Empty version: default to "main" branch
+//   - SSH URLs: convert to HTTPS for API access
+//   - Custom Azure instances: may have different API paths
 //
 // # Testing Considerations
 //

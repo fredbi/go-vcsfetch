@@ -1,6 +1,7 @@
 package giturl
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -51,7 +52,7 @@ func AutoDetect(u *url.URL) (Provider, Locator, error) {
 		locator, err := gitlab.Parse(u)
 		return ProviderGitlab, locator, err
 	case strings.Contains(host, ProviderAzure.String()):
-		panic("not implemented") // TODO
+		return ProviderAzure, nil, fmt.Errorf("url=%q: %w: %w", u.String(), ErrNotImplementedProvider, ErrProvider) // TODO: azure devops git-url
 	case strings.Contains(host, ProviderBitBucket.String()):
 		locator, err := bitbucket.Parse(u)
 		return ProviderBitBucket, locator, err
@@ -65,7 +66,7 @@ func AutoDetect(u *url.URL) (Provider, Locator, error) {
 
 // Raw transforms a [Locator] into a raw-content URL to retrieve a vcs resource from well-known SCM providers.
 //
-// This allows to bypass the use of git and is usually faster.
+// This allows to bypass the use of git and is usually faster (uses HTTP GET, not git).
 func Raw(locator Locator) (*url.URL, error) {
 	provider, _, err := AutoDetect(locator.RepoURL())
 	if err != nil {
@@ -79,9 +80,11 @@ func Raw(locator Locator) (*url.URL, error) {
 		return gitlab.Raw(locator)
 	case ProviderGitea:
 		return gitea.Raw(locator)
+	case ProviderAzure:
+		return nil, errors.Join(ErrNotImplementedProvider, ErrProvider) // TODO: azure devops git-url
 	case ProviderBitBucket:
 		return bitbucket.Raw(locator)
 	default:
-		panic("not implemented") // TODO
+		return nil, fmt.Errorf("url=%q: %w: %w", locator.RepoURL().String(), ErrUnknownProvider, ErrProvider)
 	}
 }

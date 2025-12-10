@@ -12,4 +12,7 @@ const (
 
 	// ErrUnknownProvider is raised whenever a URL cannot be associated with a well-known SCM provider.
 	ErrUnknownProvider providerError = "unrecognized git-url provider in URL"
+
+	// ErrNotImplementedProvider is currently raised for the azure provider.
+	ErrNotImplementedProvider providerError = "provider is detected but not implemented yet"
 )

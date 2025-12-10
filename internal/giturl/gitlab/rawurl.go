@@ -20,7 +20,7 @@ type Locator interface {
 func Raw(locator Locator) (*url.URL, error) {
 	pth := locator.Path()
 	if pth == "" {
-		return nil, fmt.Errorf("returning a raw content url requires a non empty path to a file")
+		return nil, fmt.Errorf("returning a raw content url requires a non empty path to a file: %w", ErrGitlab)
 	}
 
 	version := locator.Version()

@@ -4,5 +4,5 @@
 //
 // TODO:
 //
-//   - provide support for azure, gitea and bitbucket
+//   - provide support for azure
 package giturl

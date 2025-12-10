@@ -7,15 +7,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/go-openapi/testify/v2/require"
 )
-
-type testURL struct {
-	u                *url.URL
-	expectedProvider Provider
-	expectError      bool
-	expectedError    error
-}
 
 func TestAutoDetect(t *testing.T) {
 	t.Parallel()
@@ -30,7 +23,7 @@ func testSingleURL(tc testURL) func(*testing.T) {
 		t.Parallel()
 
 		if tc.expectError {
-			t.Run(fmt.Sprintf("should not auto-detect provider for %v", tc.u), func(t *testing.T) {
+			t.Run(fmt.Sprintf("should NOT auto-detect provider for %v", tc.u), func(t *testing.T) {
 				provider, locator, err := AutoDetect(tc.u)
 
 				require.Error(t, err)
@@ -51,9 +44,16 @@ func testSingleURL(tc testURL) func(*testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedProvider, provider)
 			require.NotNil(t, locator)
-			t.Logf("%v", locator)
+			t.Logf("%v", locator) // TODO: assert result
 		})
 	}
+}
+
+type testURL struct {
+	u                *url.URL
+	expectedProvider Provider
+	expectError      bool
+	expectedError    error
 }
 
 func testURLs(t *testing.T) iter.Seq[testURL] {
