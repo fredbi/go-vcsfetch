@@ -117,7 +117,7 @@ func SPDXLocatorFromURL(u *url.URL, opts ...SPDXOption) (*SPDXLocator, error) {
 		return nil, fmt.Errorf("SPDX locator requires an URL fragment to specify a single file: %w", ErrVCS)
 	}
 
-	// scheme analyis
+	// scheme analysis
 	var tool, transport string
 	parts := strings.SplitN(u.Scheme, "+", schemeParts)
 	if len(parts) > 0 {

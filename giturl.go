@@ -67,7 +67,7 @@ func GitLocatorFromURL(u *url.URL, opts ...GitLocatorOption) (*GitLocator, error
 		repo:      loc.RepoURL(),
 		Provider:  string(provider),
 		Userinfo:  userinfo,
-		Transport: u.Scheme, // TODO : factorize with spdx
+		Transport: u.Scheme, // TODO: factorize with spdx
 		Host:      u.Host,
 		Ref:       loc.Version(),
 		SubPath:   loc.Path(),

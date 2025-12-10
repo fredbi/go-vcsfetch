@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/fredbi/go-vcsfetch/internal/giturl/bitbucket"
+	"github.com/fredbi/go-vcsfetch/internal/giturl/gitea"
 	"github.com/fredbi/go-vcsfetch/internal/giturl/github"
 	"github.com/fredbi/go-vcsfetch/internal/giturl/gitlab"
 )
@@ -46,14 +48,16 @@ func AutoDetect(u *url.URL) (Provider, Locator, error) {
 
 		return ProviderGithub, locator, err
 	case strings.Contains(host, ProviderGitlab.String()):
-		locator, err := github.Parse(u)
+		locator, err := gitlab.Parse(u)
 		return ProviderGitlab, locator, err
 	case strings.Contains(host, ProviderAzure.String()):
 		panic("not implemented") // TODO
 	case strings.Contains(host, ProviderBitBucket.String()):
-		panic("not implemented") // TODO
+		locator, err := bitbucket.Parse(u)
+		return ProviderBitBucket, locator, err
 	case strings.Contains(host, ProviderGitea.String()):
-		panic("not implemented") // TODO
+		locator, err := gitea.Parse(u)
+		return ProviderGitea, locator, err
 	default:
 		return ProviderUnknown, nil, fmt.Errorf("url=%q: %w: %w", u.String(), ErrUnknownProvider, ErrProvider)
 	}
@@ -73,6 +77,10 @@ func Raw(locator Locator) (*url.URL, error) {
 		return github.Raw(locator)
 	case ProviderGitlab:
 		return gitlab.Raw(locator)
+	case ProviderGitea:
+		return gitea.Raw(locator)
+	case ProviderBitBucket:
+		return bitbucket.Raw(locator)
 	default:
 		panic("not implemented") // TODO
 	}

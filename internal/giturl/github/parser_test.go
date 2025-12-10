@@ -147,6 +147,24 @@ func parserTestCasesValid(_ *testing.T) iter.Seq[testCase] {
 				version: "v2.1",
 				path:    "LICENSE",
 			},
+			{
+				url:     "https://corporate.github.com/fredbi/go-vcsfetch/tree/v2.1/LICENSE",
+				repo:    "https://corporate.github.com/fredbi/go-vcsfetch",
+				version: "v2.1",
+				path:    "LICENSE",
+			},
+			{
+				url:     "https://github.corporate.com/fredbi/go-vcsfetch/tree/v2.1/LICENSE",
+				repo:    "https://github.corporate.com/fredbi/go-vcsfetch",
+				version: "v2.1",
+				path:    "LICENSE",
+			},
+			{
+				url:     "https://raw.corporate.com/fredbi/go-vcsfetch/v2.1/LICENSE",
+				repo:    "https://raw.corporate.com/fredbi/go-vcsfetch",
+				version: "v2.1",
+				path:    "LICENSE",
+			},
 			// TODO: escaped paths
 		},
 	)
@@ -163,6 +181,12 @@ func parserTestCasesInvalid(_ *testing.T) iter.Seq[testCase] {
 			},
 			{
 				url: "https://raw.githubusercontent.com/fredbi/go-vcsfetch/blob/heads/master/README.md",
+			},
+			{
+				url: "https://raw.githubusercontent.com/fredbi/go-vcsfetch/refs/heads",
+			},
+			{
+				url: "https://raw.githubusercontent.com/fredbi/go-vcsfetch/master",
 			},
 			{
 				url: "https://github.com/fredbi/",

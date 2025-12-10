@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2025 Frédéric BIDON
 // SPDX-License-Identifier: Apache-2.0
 
-// Package vcsfetch provides a vcs fetcher and cloner for go.
+// Package vcsfetch provides a vcs fetcher and cloner for Go.
 //
 // # URL formats for vcs locations
 //
@@ -16,7 +16,7 @@
 // # Supported vcs protocols
 //
 // Both the [Fetcher] and the [Cloner] come with native support for git, with no runtime dependencies.
-// Supported transports for git  are: file, https, ssh and git over TCP.
+// Supported transports for git are: file, https, ssh and git over TCP.
 //
 // NOTES:
 //
@@ -26,9 +26,9 @@
 // # Limitations
 //
 // At this moment, this package does not support mercurial ("hg"). We may add this feature later on,
-// as mercurial is supported by go.
+// as mercurial is supported by Go.
 //
-// [Fetcher] and [Cloner] do not support bazar ("bzr") or subversion ("svn"), and we currently have no plan
+// [Fetcher] and [Cloner] do not support bazaar ("bzr") or subversion ("svn"), and we currently have no plan
 // to add support for those.
 //
 // # Versions

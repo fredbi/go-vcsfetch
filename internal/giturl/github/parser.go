@@ -16,6 +16,7 @@ type URL struct {
 const (
 	defaultScheme = "https"
 	defaultHost   = "github.com"
+	rawHost       = "raw.githubusercontent.com"
 )
 
 // Parse a github URL.

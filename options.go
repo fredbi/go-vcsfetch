@@ -119,9 +119,9 @@ func FetchWithAllowPrereleases(allowed bool) FetchOption {
 
 // FetchWithRecurseSubmodules resolves submodules when fetching.
 //
-// By default, git subodules are not updated.
-func FetchWithRecurseSubmodules(enabled bool) CloneOption {
-	return func(o *cloneOptions) {
+// By default, git submodules are not updated.
+func FetchWithRecurseSubmodules(enabled bool) FetchOption {
+	return func(o *fetchOptions) {
 		withGitRecurseSubModules(enabled)(&o.gitOptions)
 	}
 }
@@ -134,13 +134,13 @@ type fetchOptions struct {
 // CloneOption configures a [Cloner] with optional behavior.
 type CloneOption func(*cloneOptions)
 
-// CloneWithBackingDir tells the [Cloner] to back the cloneed resources
-// on disk. By default, cloneed resources are mapped in memory.
+// CloneWithBackingDir tells the [Cloner] to back the cloned resources
+// on disk. By default, cloned resources are mapped in memory.
 //
 // If dir is empty, the default is given by [os.MkDirTemp] using "vcsclone" as the pattern.
 // In this case, [CloneWithBackingDir] panics if it can't create a temporary directory.
 //
-// When using [CloneWithBackingDir] with a non-empty directory, the cloneed content
+// When using [CloneWithBackingDir] with a non-empty directory, the cloned content
 // will not be removed after usage and left up to the caller to leave it or clean it if needed.
 func CloneWithBackingDir(enabled bool, dir string) CloneOption {
 	return func(o *cloneOptions) {
@@ -178,7 +178,7 @@ func CloneWithExactTag(exact bool) CloneOption {
 	}
 }
 
-// CloneWithRequireVersion tells the [Cloner] to check that the cloneed location
+// CloneWithRequireVersion tells the [Cloner] to check that the cloned location
 // comes with an explicit version. No default to HEAD is applied.
 func CloneWithRequireVersion(required bool) CloneOption {
 	return func(o *cloneOptions) {
@@ -186,14 +186,14 @@ func CloneWithRequireVersion(required bool) CloneOption {
 	}
 }
 
-// CloneWithSPDXOptions appends SPDX-specific options to apply to any SPDX locator to be cloneed.
+// CloneWithSPDXOptions appends SPDX-specific options to apply to any SPDX locator to be cloned.
 func CloneWithSPDXOptions(opts ...SPDXOption) CloneOption {
 	return func(o *cloneOptions) {
 		withSPDXOptions(opts...)(&o.locOptions)
 	}
 }
 
-// CloneWithGitLocatorOptions appends giturl-specific options to apply to any git-url locator to be cloneed.
+// CloneWithGitLocatorOptions appends giturl-specific options to apply to any git-url locator to be cloned.
 func CloneWithGitLocatorOptions(opts ...GitLocatorOption) CloneOption {
 	return func(o *cloneOptions) {
 		withGitLocatorOptions(opts...)(&o.locOptions)
@@ -204,7 +204,7 @@ func CloneWithGitLocatorOptions(opts ...GitLocatorOption) CloneOption {
 //
 // By default pre-releases are ignored.
 //
-// This option is disabled when using [CloneWithExacTag].
+// This option is disabled when using [CloneWithExactTag].
 //
 // Example:
 // for tag "v2", with pre-releases allowed, "v1.3.0-rc1" is a valid candidate.
@@ -216,7 +216,7 @@ func CloneWithAllowPrereleases(allowed bool) CloneOption {
 
 // CloneWithRecurseSubmodules resolves submodules when cloning.
 //
-// By default, git subodules are not updated.
+// By default, git submodules are not updated.
 func CloneWithRecurseSubmodules(enabled bool) CloneOption {
 	return func(o *cloneOptions) {
 		withGitRecurseSubModules(enabled)(&o.gitOptions)
@@ -295,7 +295,7 @@ type gitOptions struct {
 	gitSkipAutodetect bool
 	debug             bool
 	resolveExactTag   bool
-	allowPrerelases   bool
+	allowPrereleases  bool
 	recurseSubModules bool
 	// auth TODO
 }
@@ -364,7 +364,7 @@ func withGitResolveExactTag(exact bool) gitOption {
 
 func withGitAllowPrereleases(allowed bool) gitOption {
 	return func(o *gitOptions) {
-		o.allowPrerelases = allowed
+		o.allowPrereleases = allowed
 	}
 }
 

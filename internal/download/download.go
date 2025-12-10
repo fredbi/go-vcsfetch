@@ -23,6 +23,9 @@ func Supported(u *url.URL) bool {
 	}
 }
 
+// Content downloads a file from a remote URL and copies the fetched content to an [io.Writer].
+//
+// [Content] currently supports only the http and https URL schemes (no support for local files).
 func Content(ctx context.Context, u *url.URL, w io.Writer, opts *Options) error {
 	scheme, _ := strings.CutPrefix(u.Scheme, "git+")
 	v := *u

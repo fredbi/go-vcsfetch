@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strings"
 
+	"github.com/blang/semver/v4"
 	"github.com/fredbi/go-vcsfetch/internal/download"
 	"github.com/fredbi/go-vcsfetch/internal/git"
 	"github.com/fredbi/go-vcsfetch/internal/giturl"
@@ -23,7 +25,7 @@ import (
 //
 // # Concurrency
 //
-// The [Fetcher] is stateles and may be called concurrently.
+// The [Fetcher] is stateless and may be called concurrently.
 //
 // All fetches are carried out independently. If you plan to fetch multiple resources against a single
 // repository, consider using a [Cloner] for improved performances.
@@ -68,12 +70,14 @@ func (f *Fetcher) FetchLocator(ctx context.Context, w io.Writer, locator Locator
 	// short-circuit that avoids the use of git thanks to a direct raw-content download URL from the SCM.
 	//
 	// This works fine on github.com and all gitlab instances.
-	if download.Supported(locator.RepoURL()) {
-		rawURL, err := giturl.Raw(locator)
-		if err == nil {
-			if e := download.Content(ctx, rawURL, w, f.toInternalDownloadOptions()); e != nil {
-				return fmt.Errorf("could not fetch raw content from %q: %w: %w", rawURL, e, ErrVCS)
-			}
+	//
+	// Skipped when:
+	// - the URL of the repo doesn't support raw content download (e.g. ssh scheme, unrecognized SCM host)
+	// - option set to explicitly skip this optimization
+	// - version is an incomplete semver specification
+	if rawURL, ok := f.mayUseDownload(locator); ok {
+		if e := download.Content(ctx, rawURL, w, f.toInternalDownloadOptions()); e != nil {
+			return fmt.Errorf("could not fetch raw content from %q: %w: %w", rawURL, e, ErrVCS)
 		}
 	}
 
@@ -84,6 +88,36 @@ func (f *Fetcher) FetchLocator(ctx context.Context, w io.Writer, locator Locator
 	}
 
 	return nil
+}
+
+func (f *Fetcher) mayUseDownload(locator Locator) (*url.URL, bool) {
+	if f.skipRawURL {
+		return nil, false
+	}
+	if !download.Supported(locator.RepoURL()) {
+		return nil, false
+	}
+
+	rawURL, err := giturl.Raw(locator)
+	if err != nil {
+		return nil, false
+	}
+
+	if f.resolveExactTag {
+		return rawURL, true
+	}
+
+	_, err = semver.ParseTolerant(locator.Version())
+	if err != nil {
+		return rawURL, true // not a semver ref
+	}
+
+	desiredSemverLevel := min(strings.Count(locator.Version(), "."), 2) + 1
+	if desiredSemverLevel != 3 {
+		return nil, false // download does not support version lookup
+	}
+
+	return rawURL, true
 }
 
 // FetchURL fetches a single file from a vcs location as an URL.

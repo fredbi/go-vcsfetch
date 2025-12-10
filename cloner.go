@@ -23,7 +23,7 @@ import (
 // # Fetching multiple resources
 //
 // The [Cloner] may be used to fetch against the cloned resources using a similar syntax as
-// with a [Fetcher], using the [Fetch.FetchFromClone] methods. All fetched locators must then match with the cloned base URL or will
+// with a [Fetcher], using the [Cloner.FetchFromClone] methods. All fetched locators must then match with the cloned base URL or will
 // return an error.
 //
 // # Concurrency
@@ -33,8 +33,8 @@ import (
 //
 // You may use [Cloner.Close] to relinquish memory or temporary disk resources and reuse the [Cloner].
 //
-// Exception: when using [WithBackingDir] with a non-empty directory, the cloned content
-// it not removed after usage and left up to the caller to leave it or clean it if needed.
+// Exception: when using [CloneWithBackingDir] with a non-empty directory, the cloned content
+// is not removed after usage and left up to the caller to leave it or clean it if needed.
 type Cloner struct {
 	cloneOptions
 
@@ -49,14 +49,14 @@ func NewCloner(opts ...CloneOption) *Cloner {
 	}
 }
 
-// Clone a vcs repository.
+// CloneRepo clones a vcs repository.
 //
 // The repoURL string must be a valid URL.
 //
 // The URL is detected to be either a valid SPDX locator or a well-known giturl.
 //
 // The clone is accessible as a read-only [fs.FS] using [Cloner.FS].
-func (f *Cloner) Clone(ctx context.Context, repoURL string) error {
+func (f *Cloner) CloneRepo(ctx context.Context, repoURL string) error {
 	u, err := url.Parse(repoURL)
 	if err != nil {
 		return fmt.Errorf("expected a valid URL: %w: %w", err, ErrVCS)
@@ -101,6 +101,7 @@ func (f *Cloner) CloneURL(ctx context.Context, u *url.URL) error {
 	return f.CloneLocator(ctx, locator)
 }
 
+// FS returns the cloned repository as a file system.
 func (f *Cloner) FS() fs.FS {
 	return f.clonedFS
 }
@@ -129,6 +130,9 @@ func (f *Cloner) FetchLocatorFromClone(ctx context.Context, w io.Writer, locator
 	if err != nil {
 		return fmt.Errorf("cannot fetch from clone: %w: %w", err, ErrVCS)
 	}
+	defer func() {
+		_ = file.Close()
+	}()
 
 	_, err = io.Copy(w, file)
 
@@ -158,5 +162,7 @@ func (f *Cloner) Close() error {
 		return nil
 	}
 
-	return nil // TODO
+	f.clonedFS = nil // TODO: relinquish resources?
+
+	return nil
 }

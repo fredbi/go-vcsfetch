@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strings"
 )
 
 // Locator redefines locally the common minimal locator interface.
@@ -19,18 +20,17 @@ type Locator interface {
 
 // Raw returns the raw.githubusercontent URL for a [Locator] hosted on github.com.
 //
-// For Github Enterprise, there is no way to guess the host.
+// Only https url's are supported.
+//
+// For Github Enterprise, there is no way to guess the host: this only works on github.com
 //
 // Examples:
 //
 //   - https://raw.githubusercontent.com/fredbi/go-vcsfetch/refs/heads/master/README.md
 //   - https://raw.githubusercontent.com/fredbi/go-vcsfetch/master/README.md
 func Raw(locator Locator) (*url.URL, error) {
-	// TODO:
-	// - check if already raw.githubusercontent.com host
-	// - check that the scheme is http or https
 	repo := locator.RepoURL()
-	pth := locator.Path()
+	pth := strings.Trim(locator.Path(), "/")
 	if pth == "" {
 		return nil, fmt.Errorf("returning a raw content url requires a non empty path to a file: %w", ErrGithub)
 	}
@@ -40,11 +40,21 @@ func Raw(locator Locator) (*url.URL, error) {
 		version = "HEAD"
 	}
 
-	host := repo.Host
-	if host == "github.com" {
+	scheme, _ := strings.CutSuffix(repo.Scheme, "+git")
+
+	if scheme != "https" {
+		return nil, fmt.Errorf("returning a raw content url requires a https URL scheme: %w", ErrGithub)
+	}
+
+	if port := repo.Port(); port != "" && port != "443" {
+		return nil, fmt.Errorf("returning a raw content url requires a https URL with standard port (443 or unspecified): %w", ErrGithub)
+	}
+
+	host := repo.Hostname()
+	if host == defaultHost || host == rawHost {
 		u := repo
 		u.Host = "raw.githubusercontent.com"
-		u.Path = path.Join(u.Path, version, locator.Path())
+		u.Path = path.Join(u.Path, version, pth)
 		u.Fragment = ""
 		u.RawFragment = ""
 
