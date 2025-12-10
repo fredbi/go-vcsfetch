@@ -1,16 +1,14 @@
 # go-vcsfetch
-![Lint](https://github.com/fredbi/go-vcsfetch/actions/workflows/01-golang-lint.yaml/badge.svg)
-![CI](https://github.com/fredbi/go-vcsfetch/actions/workflows/02-test.yaml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/fredbi/go-vcsfetch/badge.svg?branch=master)](https://coveralls.io/github/fredbi/go-vcsfetch?branch=master)
-![Vulnerability Check](https://github.com/fredbi/go-vcsfetch/actions/workflows/03-govulncheck.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/fredbi/go-vcsfetch)](https://goreportcard.com/report/github.com/fredbi/go-vcsfetch)
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/fredbi/go-vcsfetch)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://raw.githubusercontent.com/fredbi/go-vcsfetch/master/LICENSE.md)
-
-[![Go Reference](https://pkg.go.dev/badge/github.com/fredbi/go-vcsfetch.svg)](https://pkg.go.dev/github.com/fredbi/go-vcsfetch)
-![Go version](https://img.shields.io/github/go-mod/go-version/fredbi/go-vcsfetch?color=violet)
-![Top language](https://img.shields.io/github/languages/top/fredbi/go-vcsfetch?color=green)
+<!-- Badges: status  -->
+[![Tests][test-badge]][test-url] [![Coverage][cov-badge]][cov-url] [![CI vuln scan][vuln-scan-badge]][vuln-scan-url] [![CodeQL][codeql-badge]][codeql-url]
+<!-- Badges: release & docker images  -->
+<!-- Badges: code quality  -->
+<!-- Badges: license & compliance -->
+[![Release][release-badge]][release-url] [![Go Report Card][gocard-badge]][gocard-url] [![CodeFactor Grade][codefactor-badge]][codefactor-url] [![License][license-badge]][license-url]
+<!-- Badges: documentation & support -->
+<!-- Badges: others & stats -->
+[![GoDoc][godoc-badge]][godoc-url] [![go version][goversion-badge]][goversion-url] ![Top language][top-badge] ![Commits since latest release][commits-badge]
 
 vcs fetcher and cloner for Go.
 
@@ -28,6 +26,10 @@ All fetched resources are exposed for read-only operations only.
 
 If you're looking for general purpose vcs support in Go for read/write or other git-heavy operations,
 consider using `github.com/go-git/go-git` instead.
+
+## Status
+
+Work in progress. Unreleased.
 
 ## Use-cases
 
@@ -165,3 +167,36 @@ Thank you to the guys at [`carabiner-dev`](https://carabiner.dev/), who provided
 to use a SPDX locator on top of `go-git`.
 
 Notice that this implementation is 100% original code and not a plagiarism of the above.
+
+<!-- Badges: status  -->
+[test-badge]: https://github.com/fredbi/go-vcsfetch/actions/workflows/go-test.yml/badge.svg
+[test-url]: https://github.com/fredbi/go-vcsfetch/actions/workflows/go-test.yml
+[cov-badge]: https://codecov.io/gh/fredbi/go-vcsfetch/branch/master/graph/badge.svg
+[cov-url]: https://codecov.io/gh/fredbi/go-vcsfetch
+[vuln-scan-badge]: https://github.com/fredbi/go-vcsfetch/actions/workflows/scanner.yml/badge.svg
+[vuln-scan-url]: https://github.com/fredbi/go-vcsfetch/actions/workflows/scanner.yml
+[codeql-badge]: https://github.com/fredbi/go-vcsfetch/actions/workflows/codeql.yml/badge.svg
+[codeql-url]: https://github.com/fredbi/go-vcsfetch/actions/workflows/codeql.yml
+<!-- Badges: release & docker images  -->
+[release-badge]: https://badge.fury.io/gh/fredbi%2Fgo-vcsfetch.svg
+[release-url]: https://badge.fury.io/gh/fredbi%2Fgo-vcsfetch
+[gomod-badge]: https://badge.fury.io/go/github.com%2Ffredbi%2Fgo-vcsfetch.svg
+[gomod-url]: https://badge.fury.io/go/github.com%2Ffredbi%2Fgo-vcsfetch
+<!-- Badges: code quality  -->
+[gocard-badge]: https://goreportcard.com/badge/github.com/fredbi/go-vcsfetch
+[gocard-url]: https://goreportcard.com/report/github.com/fredbi/go-vcsfetch
+[codefactor-badge]: https://img.shields.io/codefactor/grade/github/fredbi/go-vcsfetch
+[codefactor-url]: https://www.codefactor.io/repository/github/fredbi/go-vcsfetch
+<!-- Badges: documentation & support -->
+[doc-badge]: https://img.shields.io/badge/doc-site-blue?link=https%3A%2F%2Fgoswagger.io%2Ffredbi%2F
+[doc-url]: https://goswagger.io/fredbi
+[godoc-badge]: https://pkg.go.dev/badge/github.com/fredbi/go-vcsfetch
+[godoc-url]: http://pkg.go.dev/github.com/fredbi/go-vcsfetch
+<!-- Badges: license & compliance -->
+[license-badge]: http://img.shields.io/badge/license-Apache%20v2-orange.svg
+[license-url]: https://github.com/fredbi/go-vcsfetch/?tab=Apache-2.0-1-ov-file#readme
+<!-- Badges: others & stats -->
+[goversion-badge]: https://img.shields.io/github/go-mod/go-version/fredbi/go-vcsfetch
+[goversion-url]: https://github.com/fredbi/go-vcsfetch/blob/master/go.mod
+[top-badge]: https://img.shields.io/github/languages/top/fredbi/go-vcsfetch
+[commits-badge]: https://img.shields.io/github/commits-since/fredbi/go-vcsfetch/latest
