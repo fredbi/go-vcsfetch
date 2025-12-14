@@ -24,23 +24,7 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 )
 
-type Options struct {
-	IsFSBacked        bool
-	Dir               string
-	ResolveExactTag   bool
-	RecurseSubModules bool // TODO
-	AllowPreReleases  bool
-	Debug             bool
-	GitSkipAutoDetect bool
-	// Auth
-	// TLS
-	// Proxy
-}
-
-type CloneOptions struct {
-	SparseFilter []string
-}
-
+// Ref wraps a git [plumbing.Reference].
 type Ref struct {
 	*plumbing.Reference
 
@@ -50,6 +34,7 @@ type Ref struct {
 	Version   semver.Version
 }
 
+// Repository is a git repo.
 type Repository struct {
 	*Options
 
@@ -60,6 +45,9 @@ type Repository struct {
 	debug    func(string, ...any)
 }
 
+// NewRepo initializes a new git repository for a given URL.
+//
+// No resources are actually fetched or stored yet.
 func NewRepo(repoURL *url.URL, opts *Options) *Repository {
 	var debug func(string, ...any)
 
@@ -200,7 +188,7 @@ func (r *Repository) fetchAndSparseCheckout(ctx context.Context, repo *gogit.Rep
 	return err
 }
 
-// Clone the repository defined by an URL
+// Clone the repository defined by an URL.
 func (r *Repository) Clone(ctx context.Context, ref string, opts *CloneOptions) (fs.FS, error) {
 	// TODO: clone repo as fs.FS
 	return nil, nil
